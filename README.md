@@ -4,6 +4,7 @@ A simple iOS application that allows users to search for images on Flickr using 
 <video width="320" height="240" controls>
   <source src="demo.mov" type="video/mov">
 </video>
+
 ## Features
 
 - Search for images using tags
