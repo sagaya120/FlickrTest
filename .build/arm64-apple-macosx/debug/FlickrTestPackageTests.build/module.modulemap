@@ -1,0 +1,4 @@
+module FlickrTestPackageTests {
+    header "/Users/sagaya/Projects/IOS/Swift/FlickrTest/.build/arm64-apple-macosx/debug/FlickrTestPackageTests.build/FlickrTestPackageTests-Swift.h"
+    requires objc
+}

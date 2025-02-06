@@ -1,0 +1,11 @@
+{
+  "": {
+    "swift-dependencies": "/Users/sagaya/Projects/IOS/Swift/FlickrTest/.build/arm64-apple-macosx/debug/FlickrTestTests.build/master.swiftdeps"
+  },
+  "/Users/sagaya/Projects/IOS/Swift/FlickrTest/Tests/FlickrTestTests/FlickrSearchViewModelTests.swift": {
+    "dependencies": "/Users/sagaya/Projects/IOS/Swift/FlickrTest/.build/arm64-apple-macosx/debug/FlickrTestTests.build/FlickrSearchViewModelTests.d",
+    "object": "/Users/sagaya/Projects/IOS/Swift/FlickrTest/.build/arm64-apple-macosx/debug/FlickrTestTests.build/FlickrSearchViewModelTests.swift.o",
+    "swiftmodule": "/Users/sagaya/Projects/IOS/Swift/FlickrTest/.build/arm64-apple-macosx/debug/FlickrTestTests.build/FlickrSearchViewModelTests~partial.swiftmodule",
+    "swift-dependencies": "/Users/sagaya/Projects/IOS/Swift/FlickrTest/.build/arm64-apple-macosx/debug/FlickrTestTests.build/FlickrSearchViewModelTests.swiftdeps"
+  }
+}
