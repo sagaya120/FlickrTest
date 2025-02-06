@@ -2,9 +2,8 @@
 
 A simple iOS application that allows users to search for images on Flickr using tags.
 
-<video controls>
-  <source src="https://github.com/sagaya120/FlickrTest/blob/main/demo.mov" type="video/mp4">
-</video>
+[Watch the video](https://github.com/sagaya120/FlickrTest/blob/main/demo.mov)
+
 ## Features
 
 - Search for images using tags
