@@ -1,7 +1,9 @@
 # Flickr Image Search
 
 A simple iOS application that allows users to search for images on Flickr using tags.
-
+<video width="320" height="240" controls>
+  <source src="demo.mov" type="video/mov">
+</video>
 ## Features
 
 - Search for images using tags
@@ -13,7 +15,7 @@ A simple iOS application that allows users to search for images on Flickr using 
 
 ## Requirements
 
-- iOS 16.0+
+- iOS 18.0+
 - Xcode 15.0+
 - Swift 5.9+
 
@@ -39,12 +41,3 @@ The project includes unit tests for the core functionality. To run the tests:
 1. Open the project in Xcode
 2. Select the test target
 3. Press Cmd+U or navigate to Product > Test
-
-## Dependencies
-
-The project uses Swift Package Manager for dependency management. Currently, it has no external dependencies as it uses native iOS frameworks.
-
-## License
-
-This project is available under the MIT license. See the LICENSE file for more info.
-# FlickrTest
