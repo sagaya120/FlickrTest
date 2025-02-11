@@ -4,23 +4,51 @@ import SwiftUI
 
 @MainActor
 class FlickrSearchViewModel: ObservableObject {
-    @Published private(set) var images: [FlickrItem] = []
-    @Published private(set) var isLoading = false
-    @Published private(set) var error: Error?
+    enum State {
+        case idle
+        case loading
+        case loaded([FlickrItem])
+        case error(Error)
+        
+        var isLoading: Bool {
+            if case .loading = self { return true }
+            return false
+        }
+        
+        var error: Error? {
+            if case .error(let error) = self { return error }
+            return nil
+        }
+        
+        var images: [FlickrItem] {
+            if case .loaded(let images) = self { return images }
+            return []
+        }
+    }
     
+    @Published private(set) var state: State = .idle
     private let flickrService: FlickrServiceProtocol
     private var searchTask: Task<Void, Never>?
     private var cancellables = Set<AnyCancellable>()
     private let searchSubject = PassthroughSubject<String, Never>()
+    private let debounceInterval: TimeInterval
     
-    init(flickrService: FlickrServiceProtocol = FlickrService()) {
+    var images: [FlickrItem] { state.images }
+    var isLoading: Bool { state.isLoading }
+    var error: Error? { state.error }
+    
+    init(
+        flickrService: FlickrServiceProtocol = FlickrService(),
+        debounceInterval: TimeInterval = 0.3
+    ) {
         self.flickrService = flickrService
+        self.debounceInterval = debounceInterval
         setupSearchPublisher()
     }
     
     private func setupSearchPublisher() {
         searchSubject
-            .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
+            .debounce(for: .seconds(debounceInterval), scheduler: DispatchQueue.main)
             .removeDuplicates()
             .sink { [weak self] query in
                 self?.performSearch(query: query)
@@ -36,24 +64,31 @@ class FlickrSearchViewModel: ObservableObject {
         searchTask?.cancel()
         
         guard !query.isEmpty else {
-            images = []
-            isLoading = false
+            state = .idle
             return
         }
         
-        isLoading = true
-        error = nil
+        state = .loading
         
         searchTask = Task {
             do {
                 let response = try await flickrService.searchImages(query: query)
                 guard !Task.isCancelled else { return }
-                images = response.items
+                
+                if response.items.isEmpty {
+                    state = .error(FlickrError.emptyResults)
+                } else {
+                    state = .loaded(response.items)
+                }
             } catch {
                 guard !Task.isCancelled else { return }
-                self.error = error
+                state = .error(FlickrError.networkError(error))
             }
-            isLoading = false
         }
+    }
+    
+    deinit {
+        searchTask?.cancel()
+        cancellables.removeAll()
     }
 } 

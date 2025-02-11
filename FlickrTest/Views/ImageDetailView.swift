@@ -11,82 +11,83 @@ struct ImageDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                AsyncImage(url: item.media.imageURL) { phase in
-                    switch phase {
-                    case .empty:
-                        ProgressView()
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 400)
-                            .accessibilityLabel("Loading full resolution image...")
-                            .accessibilityValue("Please wait while the full resolution image loads")
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 400)
-                            .clipped()
-                            .accessibilityLabel("Full size photo: \(item.title)")
-                    case .failure:
-                        Image(systemName: "photo")
-                            .font(.largeTitle)
-                            .foregroundColor(.gray)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 400)
-                            .accessibilityLabel("Failed to load full resolution image")
-                            .accessibilityHint("The image could not be loaded. Try going back and opening the image again.")
-                    @unknown default:
-                        EmptyView()
-                    }
+                CachedAsyncImage(
+                    url: item.media.imageURL,
+                    transaction: .init(animation: reduceMotion ? nil : .spring())
+                ) { image in
+                    image
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 400)
+                        .clipped()
+                        .accessibilityLabel("Full size photo: \(item.title)")
+                } placeholder: {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 400)
+                        .accessibilityLabel("Loading full resolution image...")
                 }
-                .animation(reduceMotion ? nil : .spring(), value: horizontalSizeClass)
                 .navigationTransition(.zoom(sourceID: item, in: namespace))
 
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 12) {
                     Text(item.title)
                         .font(.title)
                         .fontWeight(.bold)
                         .dynamicTypeSize(...dynamicTypeSize)
                         .accessibilityAddTraits(.isHeader)
                     
-                    Link("By \(item.parsedDescription.authorName)",
-                         destination: item.parsedDescription.authorURL ?? URL(string: "https://www.flickr.com")!)
-                        .font(.subheadline)
-                        .foregroundColor(.blue)
-                        .dynamicTypeSize(...dynamicTypeSize)
-                        .accessibilityLabel("Author: \(item.parsedDescription.authorName)")
-                        .accessibilityHint("Tap to visit author's Flickr profile")
+                    if let authorURL = item.parsedDescription.authorURL {
+                        Link("By \(item.parsedDescription.authorName)",
+                             destination: authorURL)
+                            .font(.subheadline)
+                            .foregroundColor(.blue)
+                            .dynamicTypeSize(...dynamicTypeSize)
+                    } else {
+                        Text("By \(item.parsedDescription.authorName)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .dynamicTypeSize(...dynamicTypeSize)
+                    }
                     
                     Text(formatDate(item.dateTaken))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
-                        .dynamicTypeSize(...dynamicTypeSize)
-                        .accessibilityLabel("Published: \(formatDate(item.dateTaken))")
                     
-                    Text("Original dimensions: \(item.parsedDescription.thumbnailWidth)×\(item.parsedDescription.thumbnailHeight)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .dynamicTypeSize(...dynamicTypeSize)
-                        .accessibilityLabel("Original image dimensions: \(item.parsedDescription.thumbnailWidth) by \(item.parsedDescription.thumbnailHeight) pixels")
+                    if let dimensions = imageDimensions {
+                        Text(dimensions)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 .padding()
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel("Image Details")
             }
             .padding(.horizontal)
         }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                ShareLink(
-                    item: item.parsedDescription.photoURL?.absoluteString ?? "",
-                    subject: Text(item.title),
-                    message: Text("")
-                )
-                .accessibilityLabel("Share photo")
-                .accessibilityHint("Share this photo with others")
+                shareButton
             }
         }
+    }
+    
+    private var shareButton: some View {
+        ShareLink(
+            item: item.parsedDescription.photoURL?.absoluteString ?? "",
+            subject: Text(item.title),
+            message: Text("Check out this photo on Flickr")
+        )
+        .disabled(item.parsedDescription.photoURL == nil)
+        .accessibilityLabel("Share photo")
+    }
+    
+    private var imageDimensions: String? {
+        guard item.parsedDescription.thumbnailWidth > 0,
+              item.parsedDescription.thumbnailHeight > 0 else {
+            return nil
+        }
+        return "Original dimensions: \(item.parsedDescription.thumbnailWidth)×\(item.parsedDescription.thumbnailHeight)"
     }
     
     private func formatDate(_ dateString: String) -> String {

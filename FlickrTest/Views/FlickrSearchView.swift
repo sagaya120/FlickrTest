@@ -21,7 +21,9 @@ struct FlickrSearchView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .accessibilityLabel("Searching for images")
                 } else if let error = viewModel.error {
-                    ErrorView(error: error)
+                    ErrorView(error: error) {
+                        viewModel.search(query: searchText)
+                    }
                 } else {
                     imageGrid
                 }
@@ -42,35 +44,22 @@ struct FlickrSearchView: View {
                     NavigationLink {
                         ImageDetailView(item: item, namespace: namespace)
                     } label: {
-                        AsyncImage(url: item.parsedDescription.thumbnailURL) { phase in
-                            switch phase {
-                            case .empty:
-                                ProgressView()
-                                    .frame(width: 100, height: 100)
-                                    .accessibilityLabel("Loading thumbnail...")
-                                    .accessibilityValue("Please wait while the image loads")
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fill)
-                                    .frame(minWidth: 0, maxWidth: .infinity)
-                                    .frame(height: 100)
-                                    .clipped()
-                                    .accessibilityLabel("Photo titled: \(item.title)")
-                                    .accessibilityHint("Tap to view details")
-                                    .accessibilityIdentifier("exampleImage")
-                                    .accessibilityAddTraits(.isButton)
-                                    .dynamicTypeSize(.large)
-                                    .matchedTransitionSource(id: item, in: namespace)
-                            case .failure:
-                                Image(systemName: "photo")
-                                    .foregroundColor(.gray)
-                                    .frame(width: 100, height: 100)
-                                    .accessibilityLabel("Failed to load image")
-                                    .accessibilityHint("The image could not be loaded. Try refreshing the page.")
-                            @unknown default:
-                                EmptyView()
-                            }
+                        CachedAsyncImage(url: item.parsedDescription.thumbnailURL) { image in
+                            image
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(minWidth: 0, maxWidth: .infinity)
+                                .frame(height: 100)
+                                .clipped()
+                                .accessibilityLabel("Photo titled: \(item.title)")
+                                .accessibilityHint("Tap to view details")
+                                .accessibilityIdentifier("exampleImage")
+                                .accessibilityAddTraits(.isButton)
+                                .dynamicTypeSize(.large)
+                                .matchedTransitionSource(id: item, in: namespace)
+                        } placeholder: {
+                            ProgressView()
+                                .accessibilityLabel("Loading thumbnail...")
                         }
                         .frame(minWidth: 0, maxWidth: .infinity)
                         .background(Color.gray.opacity(0.1))
@@ -84,25 +73,6 @@ struct FlickrSearchView: View {
             .accessibilityLabel("Search Results")
             .accessibilityValue("\(viewModel.images.count) images found")
         }
-    }
-}
-
-struct ErrorView: View {
-    let error: Error
-    
-    var body: some View {
-        VStack {
-            Image(systemName: "exclamationmark.triangle")
-                .font(.largeTitle)
-                .foregroundColor(.red)
-                .accessibilityHidden(true)
-            Text("Error: \(error.localizedDescription)")
-                .multilineTextAlignment(.center)
-                .accessibilityLabel("Search error occurred")
-                .accessibilityValue(error.localizedDescription)
-                .accessibilityHint("Try adjusting your search terms or check your internet connection")
-        }
-        .padding()
     }
 }
 
